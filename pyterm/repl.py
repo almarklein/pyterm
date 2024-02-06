@@ -16,6 +16,10 @@ import linecache
 
 printDirect = print
 
+# todo: clean this up ...
+# todo: prompts and inputs and such.
+# todo: Probably some gems here: https://github.com/almarklein/heart_of_prompt_toolit
+
 
 
 class PS1:
