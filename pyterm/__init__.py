@@ -12,6 +12,7 @@ from .loop_asyncio import patch_asyncio_on_import
 from .term.io import Stdin, StdinBuffer, InputThread  # todo: hide StdinBuffer?
 from .term import Terminal
 from .repl import Repl
+from .prompt import Prompt
 
 
 __version__ = "0.1.0"
@@ -30,7 +31,7 @@ def main():
     # Only when this function is called, is everything put in place.
 
     # Uncomment to detect error in the interpreter itself.
-    # But better not use it by default. For instance errors in qt events
+    # But better not use it by default. For instance errors in qt eventsonss
     # are also catched by this function. I think that is because it would
     # allow you to show such exceptions in an error dialog.
     # sys.excepthook = pyterm_excepthook
@@ -44,11 +45,14 @@ def main():
     # Replace stdin with a variant that uses the queue.
     sys.stdin = Stdin(StdinBuffer(lines_queue))
 
-    def callback(text):
-        if "x" == text:
+    prompt = Prompt()
+
+    def callback(key):
+        if "x" == key:
             print("Quitting!")
             loop.call_soon(sys.exit)
-        print("echo", repr(text))
+        # print("echo", repr(key))
+        prompt.on_key(key)
 
     # Read from real stdin, into the queue.
     input_thread = InputThread(sys.__stdin__.fileno(), callback)

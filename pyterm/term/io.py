@@ -10,6 +10,9 @@ import logging
 import threading
 from codecs import getincrementaldecoder
 
+from .input_keys import EscapeCodeDecoder
+
+
 logger = logging.getLogger("pyterm")
 
 
