@@ -840,7 +840,7 @@ class Repl:
                 tbInfo = tblist[i]
                 # Get filename and line number, init example
                 fname, lineno = self.correctfilenameandlineno(tbInfo[0], tbInfo[1])
-                if not isinstance(fname, ustr):
+                if not isinstance(fname, str):
                     fname = fname.decode("utf-8")
                 example = tbInfo[3]
                 # Reset info

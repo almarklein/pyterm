@@ -16,7 +16,6 @@ if __name__ == "__main__" and len(sys.argv) >= 2:
         sys.exit(0)
 
 
-
 if __name__ == "__main__":
 
     # Delete stuff we do not want
@@ -30,4 +29,3 @@ if __name__ == "__main__":
     del name
 
     pyterm.main()
-

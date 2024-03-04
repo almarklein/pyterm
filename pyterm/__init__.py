@@ -5,15 +5,23 @@ pyterm - an interative Python terminal.
 import sys
 import time
 import queue
+import logging
 
 from .loop import loop_manager, RawLoop
 from .loop_asyncio import patch_asyncio_on_import
-from .io import Stdin, StdinBuffer, InputThread  # todo: hide StdinBuffer?
+from .term.io import Stdin, StdinBuffer, InputThread  # todo: hide StdinBuffer?
+from .term import Terminal
 from .repl import Repl
 
 
 __version__ = "0.1.0"
 version_info = tuple(map(int, __version__.split(".")))
+
+
+logger = logging.getLogger("pyterm")
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.INFO)
+
 
 
 def main():
@@ -27,6 +35,7 @@ def main():
     # allow you to show such exceptions in an error dialog.
     # sys.excepthook = pyterm_excepthook
 
+    t = Terminal()
 
     # Create queue to store lines from stdin, but thread-safe, and being
     # able to tell whether there are lines pending.
@@ -35,13 +44,19 @@ def main():
     # Replace stdin with a variant that uses the queue.
     sys.stdin = Stdin(StdinBuffer(lines_queue))
 
+    def callback(text):
+        if "x" == text:
+            print("Quitting!")
+            loop.call_soon(sys.exit)
+        print("echo", repr(text))
+
     # Read from real stdin, into the queue.
-    input_thread = InputThread(lines_queue, lambda: loop_manager.call_in_loops(repl.iter))
+    input_thread = InputThread(sys.__stdin__.fileno(), callback)
     input_thread.start()
 
     # Create a repl, also reads from the queue.
     namespace = {}
-    repl = Repl(namespace, lines_queue)
+    # repl = Repl(namespace, lines_queue)
 
     # Patching loops
     patch_asyncio_on_import()
@@ -52,6 +67,8 @@ def main():
 
     try:
         loop.run()
+    except BaseException as err:
+        pass #print("except from loop", err)
     finally:
         # Restore original streams, so that SystemExit behaves as intended
         try:

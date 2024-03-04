@@ -36,6 +36,7 @@ class RawLoop(BaseLoop):
 
     def run(self):
         self._is_running = True
+        logger.info("Entering raw loop")
 
         try:
             while True:
@@ -45,6 +46,7 @@ class RawLoop(BaseLoop):
                     self._call(func)
         finally:
             self._is_running = False
+            logger.info("Exiting raw loop")
 
     def _get_func_to_call(self):
         with self._lock:
