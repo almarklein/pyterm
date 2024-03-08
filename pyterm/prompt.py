@@ -1,5 +1,6 @@
 import sys
 import math
+import platform
 
 
 class Prompt:
@@ -11,6 +12,7 @@ class Prompt:
         self._in2 = ""
 
         self._history = HistoryHelper()
+        self._status = StatusHelper()
 
         import builtins
 
@@ -78,7 +80,7 @@ class Prompt:
         write("\x1b[0J")
 
         # Make space below
-        nlines = 7
+        nlines = 7 + 1
         write("\n" * nlines)
         write(f"\x1b[{nlines}A")
 
@@ -107,6 +109,10 @@ class Prompt:
         # Restore cursor to saved state
         write("\x1b8")
 
+        self._status.write(sys.stdout)
+
+        # Restore cursor to saved state
+        write("\x1b8")
         sys.stdout.flush()
 
     def _write(self, s):
@@ -249,3 +255,26 @@ class AutocompHelper:
             write(self._list[index])
             # write(f"  {scroll_first} {len(self._list)} {vspace} {scroll_n}")
             write("\x1b[0m")
+
+
+class StatusHelper:
+
+    def __init__(self):
+        self._pyversion = (
+            platform.python_implementation() + " " + platform.python_version()
+        )
+
+    @property
+    def active(self):
+        return True
+
+    def write(self, file):
+        write = file.write
+        loop_info = "some-loop"
+        runner = "o"
+        line_down = 8
+
+        write(f"\x1b[{line_down}E")  # move to line
+        write("\x1b[0;37;44m")
+        write(f" {runner} PyTerm with {self._pyversion} on {loop_info:<10}  ".ljust(80))
+        write("\x1b[0m")
