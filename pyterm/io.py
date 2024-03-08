@@ -13,7 +13,7 @@ logger = logging.getLogger("pyterm")
 
 
 class StdinBuffer:
-    def __init__(self, lines_queue, name='<stdin>', isatty=True):
+    def __init__(self, lines_queue, name="<stdin>", isatty=True):
         self._name = name
         self._closed = False
         self._isatty = isatty
@@ -61,7 +61,9 @@ class StdinBuffer:
     # def fileno(self) -> if we implement it to raise an error, TextIOWrapper(..) fails
 
     def read(self, size=-1):
-        raise io.UnsupportedOperation("If your application reads from stdin, you should probably not boot it via pyterm! Note that readline is supported though.")
+        raise io.UnsupportedOperation(
+            "If your application reads from stdin, you should probably not boot it via pyterm! Note that readline is supported though."
+        )
 
     def readline(self, size=-1):
         return self.lines_queue.get()
@@ -71,7 +73,6 @@ class Stdin(io.TextIOWrapper):
 
     def readline(self, size=-1):
         return self.buffer.readline(size).decode()
-
 
 
 class InputThread(threading.Thread):
@@ -105,7 +106,6 @@ class InputThread(threading.Thread):
             logger.info("io thread stopped")
 
 
-
 class StdoutWithPrompt(io.TextIOWrapper):
 
     def __init__(self, buffer):
@@ -116,7 +116,6 @@ class StdoutWithPrompt(io.TextIOWrapper):
         if self._last_prompt:
             super().write("\r")
         super().write(text)
-
 
 
 # # A ref to the current input thread to prevent it from being deleted

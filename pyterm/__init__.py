@@ -24,7 +24,6 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
 
-
 def main():
 
     # When importing pyterm, nothing should happen just yet.
@@ -72,7 +71,7 @@ def main():
     try:
         loop.run()
     except BaseException as err:
-        pass #print("except from loop", err)
+        pass  # print("except from loop", err)
     finally:
         # Restore original streams, so that SystemExit behaves as intended
         try:
@@ -104,4 +103,3 @@ def pyterm_excepthook(type, value, tb):
             tb = tb.tb_next
 
     time.sleep(0.3)  # Give some time for the message to be send
-

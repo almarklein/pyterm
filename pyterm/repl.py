@@ -21,10 +21,8 @@ printDirect = print
 # todo: Probably some gems here: https://github.com/almarklein/heart_of_prompt_toolit
 
 
-
 class PS1:
-    """Dynamic prompt for PS1.
-    """
+    """Dynamic prompt for PS1."""
 
     def __init__(self, repl):
         self._repl = repl
@@ -119,8 +117,7 @@ class Repl:
         self._prepare()
 
     def _prepare(self):
-        """Prepare for running the main loop.
-        """
+        """Prepare for running the main loop."""
 
         # Reset debug status
         # self.debugger.writestatus()
@@ -163,7 +160,7 @@ class Repl:
         )
 
         # Write pyterm part of banner (including what GUI loop is integrated)
-        printDirect( "This is the pyterm.")
+        printDirect("This is the pyterm.")
 
         # Set prompts
         sys.ps1 = PS1(self)
@@ -230,7 +227,6 @@ class Repl:
             logging.basicConfig = basicConfigDoesNothing
         except Exception:
             pass
-
 
     def _prepare_environment(self, startup_info):
         """Prepare the Python environment. There are two possibilities:
@@ -371,13 +367,12 @@ class Repl:
             # when the state is different. Note that the kernelbroker
             # can also set the state ("Very busy", "Busy", "Dead")
             if self._dbFrames:
-                pass #self.context._stat_interpreter.send("Debug")
+                pass  # self.context._stat_interpreter.send("Debug")
             elif self.more:
-                pass #self.context._stat_interpreter.send("More")
+                pass  # self.context._stat_interpreter.send("More")
             else:
-                pass #self.context._stat_interpreter.send("Ready")
+                pass  # self.context._stat_interpreter.send("Ready")
             # self.context._stat_cd.send(os.getcwd())
-
 
         # Are we still connected?
         if sys.stdin.closed:
@@ -385,7 +380,6 @@ class Repl:
             # This will raise SystemExit and will shut us down in the
             # most appropriate way
             sys.exit()
-
 
         # Get the queue with lines
         try:
@@ -399,14 +393,13 @@ class Repl:
         except queue.Empty:
             return
 
-
         if True:
             # Read command
             if line1:
                 # Notify what we're doing
                 self.newPrompt = True
                 # Convert command
-                line2 = line1#self.magician.convert_command(line1.rstrip("\n"))
+                line2 = line1  # self.magician.convert_command(line1.rstrip("\n"))
                 # Execute actual code
                 if line2 is not None:
                     for line3 in line2.split("\n"):  # not splitlines!
@@ -428,7 +421,6 @@ class Repl:
                 # Reset more stuff
                 self._resetbuffer()
                 self.more = False
-
 
     ## Running code in various ways
     # In all cases there is a call for compilecode and a call to execcode
@@ -487,7 +479,6 @@ class Repl:
         line.
 
         """
-
 
         # Try compiling.
         error = None
@@ -729,7 +720,6 @@ class Repl:
             print("Error while setting breakpoints: %s" % str(value))
 
     ## Handlers and hooks
-
 
     def dbstop_handler(self, *args, **kwargs):
         print("Program execution stopped from debugger.")

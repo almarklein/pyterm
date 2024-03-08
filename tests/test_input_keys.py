@@ -35,17 +35,17 @@ def test_escape_code_decoder_ambiguous_cases():
 
     # Double-escapes should be treated as single, because
     # "Windows issues esc esc for a single press of escape key"
-    check_decoder(' \x1b ', [" ", "escape", " "])
-    check_decoder(' \x1b\x1b ', [" ", "escape", " "])
-    check_decoder(' \x1b\x1b\x1b ', [" ", "escape", "escape",  " "])
-    check_decoder(' \x1b\x1b\x1b\x1b ', [" ", "escape", "escape", " "])
+    check_decoder(" \x1b ", [" ", "escape", " "])
+    check_decoder(" \x1b\x1b ", [" ", "escape", " "])
+    check_decoder(" \x1b\x1b\x1b ", [" ", "escape", "escape", " "])
+    check_decoder(" \x1b\x1b\x1b\x1b ", [" ", "escape", "escape", " "])
 
     # This one is easily interpreted wrong
-    check_decoder(' \x1b\x1b[[D', [" ", "escape", "f4"])
+    check_decoder(" \x1b\x1b[[D", [" ", "escape", "f4"])
 
     # Could be [escape, shift+tab] or [escape, escape, tab] or [escape, tab]
     # This now eagerly interprets as shift+tab.
-    check_decoder(' \x1b\x1b\x09', [" ", "escape", "shift+tab"])
+    check_decoder(" \x1b\x1b\x09", [" ", "escape", "shift+tab"])
 
 
 def test_escape_code_decoder_partial():
@@ -77,13 +77,12 @@ def test_escape_code_decoder_partial():
     result = decoder.decode("[A")
     assert result == ["up"]
 
-
     # Char by char, with flushes
     decoder = EscapeCodeDecoder()
     result = decoder.decode("\x1b", True)
-    assert result == ['escape']
+    assert result == ["escape"]
     result = decoder.decode("[", True)
-    assert result == ['[']
+    assert result == ["["]
     result = decoder.decode("A", True)
     assert result == ["A"]
 
@@ -113,9 +112,9 @@ def check_decoder(input, expected):
         info += f"  {'RESULT':>12}  EXPECTED\n\n"
         for v1, v2 in zip(result, expected):
             info += "X "[v1 == v2] + f" {v1:>12}  {v2}\n"
-        for v1 in result[len(expected):]:
+        for v1 in result[len(expected) :]:
             info += f"+ {v1:>12}  \n"
-        for v2 in expected[len(result):]:
+        for v2 in expected[len(result) :]:
             info += f"- {'':>12}  {v2}\n"
     assert result == expected, info
 

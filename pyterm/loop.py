@@ -11,8 +11,7 @@ logger = logging.getLogger("pyterm")
 
 
 class BaseLoop:
-    """Base loop class. All methods must be thread-safe.
-    """
+    """Base loop class. All methods must be thread-safe."""
 
     def __init__(self, name):
         pass
@@ -71,9 +70,9 @@ class RawLoop(BaseLoop):
 
 
 class DebugLoop(BaseLoop):
-    """ A raw loop during debugging?"""
-    pass
+    """A raw loop during debugging?"""
 
+    pass
 
 
 class LoopManager:

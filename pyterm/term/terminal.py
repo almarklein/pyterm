@@ -19,7 +19,7 @@ import signal
 
 
 class Terminal:
-    """ Base class for a simple terminal.
+    """Base class for a simple terminal.
 
     Instantiating this class produces a class corresponding with the
     current platform.
@@ -29,9 +29,10 @@ class Terminal:
         # Select terminal class
         if sys.platform.startswith("win"):
             from .terminal_windows import WindowsTerminal as Terminal
+
             return windows.WindowsTerminal()
         else:
-           from .terminal_unix import UnixTerminal as Terminal
+            from .terminal_unix import UnixTerminal as Terminal
         return super().__new__(Terminal, **kwargs)
 
     def __init__(self, stdin=None, stdout=None):
@@ -55,7 +56,6 @@ class Terminal:
         # signal.signal(signal.SIGINT, self._exit)
         # signal.signal(signal.SIGTERM, self._exit)
 
-
     def _set_terminal_mode(self):
         raise NotImplementedError()
 
@@ -76,7 +76,6 @@ class Terminal:
         # can nevertheless override this, e.g. if they keep track of
         # resizes already.
         return shutil.get_terminal_size()
-
 
     def _enable_mouse_support(self) -> None:
         """Enable reporting of mouse events."""

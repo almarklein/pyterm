@@ -13,8 +13,8 @@ _hooks = {}  # name -> [list of funcs]
 
 
 def on_import(fullname, func=None):
-    """Register a function to be called when fullname is imported. Can be used as a decorator.
-    """
+    """Register a function to be called when fullname is imported. Can be used as a decorator."""
+
     def on_import_wrapper(func):
         _hooks.setdefault(fullname, []).append(func)
         return func
@@ -46,7 +46,9 @@ class ImporthookLoader(Loader):
             try:
                 hook_func(m)
             except Exception as err:
-                logger.error(f"Error in import hook for {self.__fullname}, func {hook_func}: {err}")
+                logger.error(
+                    f"Error in import hook for {self.__fullname}, func {hook_func}: {err}"
+                )
         return result
 
 

@@ -19,9 +19,7 @@ def patch_asyncio_on_import():
 
 
 def patch_asyncio(asyncio):
-    """Patch asyncio so we get notified when a new event-loop is set.
-
-    """
+    """Patch asyncio so we get notified when a new event-loop is set."""
 
     logger.info("Patching asyncio.")
 
@@ -36,7 +34,6 @@ def patch_asyncio(asyncio):
     # ori_set_event_loop = asyncio.DefaultEventLoopPolicy.set_event_loop
     # if "pyterm" not in ori_set_event_loop.__name__:
     #     asyncio.DefaultEventLoopPolicy.set_event_loop = pyterm_set_event_loop
-
 
     # Patch asyncio.events_set_running_loop()
 

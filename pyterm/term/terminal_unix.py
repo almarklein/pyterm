@@ -6,7 +6,6 @@ import termios  # Unix
 from .terminal import Terminal
 
 
-
 def patch_lflag(attrs: int) -> int:
     return attrs & ~(termios.ECHO | termios.ICANON | termios.IEXTEN | termios.ISIG)
 
@@ -76,7 +75,6 @@ class UnixTerminal(Terminal):
         # signal.signal(signal.SIGWINCH, on_terminal_resize)
         # We can also use
 
-
     def _set_terminal_mode(self):
         try:
             self._ori_term_attr = termios.tcgetattr(self.fd_in)
@@ -109,4 +107,3 @@ class UnixTerminal(Terminal):
             except Exception:
                 pass
             self_ori_term_attr = None
-
