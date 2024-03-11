@@ -15,6 +15,8 @@ class Prompt:
         self._pre = "pyterm> "
         self._in1 = ""
         self._in2 = ""
+        self._prompt_is_shown = False
+        self._lines_below_input = 0
 
         self._history = HistoryHelper()
         self._status = StatusHelper()
@@ -42,24 +44,18 @@ class Prompt:
             if self._in1:
                 self._in1 = self._in1[:-1]
         elif key == "enter":
-            command = self._in1 + self._in2
-            self._history.add(command)
-            self._history.reset()
-            self._in1 = command
-            self._in2 = ""
-            self.clear()
-            self.write_prompt()
-            self._write("\n")
-            self._in1 = ""
-            self.write_prompt()
+            self.submit(self._in1 + self._in2)
         elif key == "escape":
             print("escape was hit!")
             return
         elif key == "tab":
             import sys
 
-            sys.stderr.write("Tab was hit!\n")
-            sys.stderr.flush()
+            # print("Tab was hit!")
+            sys.stdout.write("Tab was hit!|")
+            sys.stdout.flush()
+            # sys.stderr.write("Tab was hit!|")
+            # sys.stderr.flush()
             return
         elif key == "left":
             if self._in1:
@@ -89,12 +85,60 @@ class Prompt:
         self.clear()
         self.write_prompt()
 
-    def clear(self):
-        write = self._write
-        # Move to stored state, and clear rest of screen
-        write("\x1b8")
-        write("\x1b[0J")
+    def submit(self, command):
+        # Render the given command
+        self._in1 = command
+        self._in2 = ""
+        self.clear()
+        self.write_prompt()
 
+        # Newline and clear that line
+        self._write("\n\x1b[0K")
+
+        # Fresh prompt
+        self._in1 = ""
+        self.write_prompt()
+
+        # Update history
+        self._history.add(command)
+        self._history.reset()
+
+    def clear(self):
+
+        # TODO: need a lock to make writes atomic in multi-threading situations!
+
+        if not self._prompt_is_shown:
+            return
+
+        write = self._write
+
+        # Restore state. This includes position, but also color and more.
+        write("\x1b8")
+
+        # Reset color and style.
+        write("\x1b[0m")
+
+        # Unfortunately, the row-number is easily offset for reasons I don't
+        # fully understand. The column is correct though, and important to
+        # maintain to support printing multiple pieces on the same line (e.g. a
+        # progress bar in an async setting). To correct the row, we move all the
+        # way down, clipping to the bottom, and then back up, using the number
+        # of lines that we know.
+        n = self._lines_below_input + 1
+
+        # As we move down, we clear the lines.
+        write(f"\x1b[1B\x1b[2K" * n)
+
+        # Go back up. We're still in the correct column. After this,
+        # we're right after the last written char.
+        write(f"\x1b[{n}A")
+
+        # We could clear from here. But we do not have to. I expect there's less
+        # chance on flicker if we don't change the number of lines too much.
+        # That's why we clear all lines instead.
+        # write("\x1b[0J")  - commented to avoid flicker
+
+        self._prompt_is_shown = False
         self._file_out.buffer.flush()
 
     def write_prompt(self):
@@ -112,13 +156,14 @@ class Prompt:
         lines_below = []
         lines_below += self._autocomp.get_lines()
         lines_below += self._status.get_lines()
+        self._lines_below_input = len(lines_below)
 
         for line in lines_below:
             write("\n")
             write(line)
 
         # Move back up
-        write(f"\x1b[{len(lines_below)}F")
+        write(f"\x1b[{self._lines_below_input}F")
 
         # Write prompt
         write("\x1b[1m")  # bold
@@ -135,6 +180,7 @@ class Prompt:
             n = len(self._in2)
             write(f"\x1b[{n}D")
 
+        self._prompt_is_shown = True
         self._file_out.buffer.flush()
 
 
