@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 # Enable importing also if not installed
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 

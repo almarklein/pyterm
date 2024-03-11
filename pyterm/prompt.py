@@ -1,5 +1,9 @@
 import math
+import logging
 import platform
+
+
+logger = logging.getLogger("pyterm")
 
 
 class Prompt:
@@ -18,7 +22,12 @@ class Prompt:
         self._autocomp.show([str(i) for i in range(100)])
         # self._autocomp.show(["aap", "noot", "mies", "spam", "eggs"])
 
-        self._write_prompt()
+        self.write_prompt()
+
+    def _write(self, text):
+        self._file_out.buffer.write(
+            text.encode(self._file_out.encoding, errors="ignore")
+        )
 
     def on_key(self, key):
 
@@ -38,11 +47,20 @@ class Prompt:
             self._history.reset()
             self._in1 = command
             self._in2 = ""
-            self._write_prompt()
-            self._file_out.write("\n")
+            self.clear()
+            self.write_prompt()
+            self._write("\n")
             self._in1 = ""
+            self.write_prompt()
         elif key == "escape":
-            pass
+            print("escape was hit!")
+            return
+        elif key == "tab":
+            import sys
+
+            sys.stderr.write("Tab was hit!\n")
+            sys.stderr.flush()
+            return
         elif key == "left":
             if self._in1:
                 self._in2 = self._in1[-1] + self._in2
@@ -68,19 +86,39 @@ class Prompt:
         else:
             pass  # ignore
 
-        self._write_prompt()
+        self.clear()
+        self.write_prompt()
 
-    def _write_prompt(self):
-        write = self._file_out.write
-
-        # Move to beginning, and clear rest of screen
-        write("\r")
+    def clear(self):
+        write = self._write
+        # Move to stored state, and clear rest of screen
+        write("\x1b8")
         write("\x1b[0J")
 
-        # Make space below
-        nlines = 7 + 1
-        write("\n" * nlines)
-        write(f"\x1b[{nlines}A")
+        self._file_out.buffer.flush()
+
+    def write_prompt(self):
+
+        write = self._write
+
+        # Save cursor state, right before doing our thing
+        write("\x1b7")
+
+        # Start on a new line, because we don't know whether the last written char was a newline.
+        # This results in a bit more vertical space, but I quite like that ...
+        write("\n")
+
+        # Print stuff that goes below the prompt
+        lines_below = []
+        lines_below += self._autocomp.get_lines()
+        lines_below += self._status.get_lines()
+
+        for line in lines_below:
+            write("\n")
+            write(line)
+
+        # Move back up
+        write(f"\x1b[{len(lines_below)}F")
 
         # Write prompt
         write("\x1b[1m")  # bold
@@ -88,30 +126,16 @@ class Prompt:
         write("\x1b[0m")  # reset style
 
         # Write input left of the cursor
-        write(self._in1)
+        if self._in1:
+            write(self._in1)
 
-        # Write input right of the cursor
-        write(self._in2)
+        # Write input right of the cursor, and move cursor back
+        if self._in2:
+            write(self._in2)
+            n = len(self._in2)
+            write(f"\x1b[{n}D")
 
-        # Save cursor pos
-        n = -len(self._in2)
-        if n > 0:
-            write(f"\x1b[{n}C")
-        elif n < 0:
-            write(f"\x1b[{-n}D")
-        write("\x1b7")
-
-        # Autocomp
-        for line in self._autocomp.get_lines():
-            write("\x1b[1E")  # move to beginning of next line
-            write(line)
-
-        write("\x1b[1E")
-        write(self._status.get_line())
-
-        # Restore cursor to saved state
-        write("\x1b8")
-        self._file_out.flush()
+        self._file_out.buffer.flush()
 
 
 class HistoryHelper:
@@ -268,11 +292,11 @@ class StatusHelper:
     def active(self):
         return True
 
-    def get_line(self):
+    def get_lines(self):
         loop_info = "some-loop"
         runner = "o"
         line = ""
         line += "\x1b[0;37;44m"
         line += f" {runner} PyTerm with {self._pyversion} on {loop_info:<10}".ljust(80)
         line += "\x1b[0m"
-        return line
+        return [line]

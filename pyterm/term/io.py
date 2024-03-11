@@ -115,16 +115,78 @@ class InputThread(threading.Thread):
             logger.info("io thread stopped")
 
 
-class StdoutWithPrompt(io.TextIOWrapper):
+class PytermOutBuffer:
+    def __init__(self, prompt, proxy, name, isatty=True):
+        self._name = name
+        self._closed = False
+        self._isatty = isatty
+        self._prompt = prompt
+        self._proxy_file = proxy
 
-    def __init__(self, buffer):
-        super().__init__(buffer)
-        self._last_prompt = ""
+    def __del__(self):
+        self.close()
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def newlines(self):
+        return None
+
+    @property
+    def closed(self):
+        return self._closed
+
+    def close(self):
+        """Close the file object."""
+        self._proxy_file.close()
+        self._closed = True
+        return
+
+    def detach(self):
+        raise io.UnsupportedOperation("Stream does not support detach.")
+
+    def readable(self):
+        return False
+
+    def writable(self):
+        return True
+
+    def seekable(self):
+        return False
+
+    def flush(self):
+        self._proxy_file.flush()
+
+    def isatty(self):
+        return self._isatty
+
+    # def fileno(self) -> if we implement it to raise an error, TextIOWrapper(..) fails
+
+    def write(self, bb):
+        logger.info(f"stdout buffer write {id(self._proxy_file)}: {bb}")
+        self._prompt.clear()
+        self._proxy_file.write(bb)
+        self._proxy_file.flush()
+        self._prompt.write_prompt()
+        return len(bb)
+
+    def writelines(self, lines):
+        logger.info(f"stdout buffer write lines")
+        self._prompt.clear()
+        for line in lines:
+            self._proxy_file.write(line)
+        self._proxy_file.flush()
+        self._prompt.write_prompt()
+
+
+class PytermOutFile(io.TextIOWrapper):
+
+    def __init__(self, prompt, proxy, name):
+        super().__init__(
+            PytermOutBuffer(prompt, proxy.buffer, name), encoding=proxy.encoding
+        )
 
     def write(self, text):
-        if self._last_prompt:
-            super().write("\r")
-        super().write(text)
-
-
-# %%
+        self.buffer.write(text.encode(self.encoding))

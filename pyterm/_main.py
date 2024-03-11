@@ -5,7 +5,12 @@ import logging
 
 from .loop import loop_manager, RawLoop
 from .loop_asyncio import patch_asyncio_on_import
-from .term.io import Stdin, StdinBuffer, InputThread  # todo: hide StdinBuffer?
+from .term.io import (
+    Stdin,
+    StdinBuffer,
+    InputThread,
+    PytermOutFile,
+)  # todo: hide StdinBuffer?
 from .term import Terminal
 from .repl import Repl
 from .prompt import Prompt
@@ -28,10 +33,12 @@ def main():
     # able to tell whether there are lines pending.
     lines_queue = queue.Queue()
 
+    prompt = Prompt(sys.stdout)
+
     # Replace stdin with a variant that uses the queue.
     sys.stdin = Stdin(StdinBuffer(lines_queue))
-
-    prompt = Prompt(sys.stdout)
+    sys.stdout = PytermOutFile(prompt, sys.stdout, "<stdout>")
+    sys.stderr = PytermOutFile(prompt, sys.stderr, "<stderr>")
 
     def callback(key):
         if "x" == key:

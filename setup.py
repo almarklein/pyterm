@@ -10,9 +10,7 @@ with open("pyterm/__init__.py", "rb") as fh:
 setup(
     name="pyterm",
     version=VERSION,
-    packages=find_packages(
-        exclude=["tests", "tests.*", "examples", "examples.*"]
-    ),
+    packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*"]),
     python_requires=">=3.6.0",
     install_requires=[],
     license="MIT",
