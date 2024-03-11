@@ -311,21 +311,34 @@ class AutocompHelper:
 
         lines = []
         for i, index in enumerate(range(index_first, index_last + 1)):
-            line = ""
-            if i >= scroll_first and i < scroll_first + scroll_n:
-                line += "\x1b[0m█ \x1b[0m"
-            else:
-                line += "\x1b[2m█ \x1b[0m"
-            line += "\x1b[2m"
+            line = "\x1b[0m"
+
+            # Get color
+            # line += "\x1b[0;30;107m" if index == self._index else "\x1b[0;37;100m"
             if index == self._index:
-                line += "\x1b[4m"
-            line += self._list[index]
-            # line += f"  {scroll_first} {len(self._list)} {vspace} {scroll_n}"
+                line += "\x1b[0;30;103m "
+            else:
+                line += "\x1b[0;37;100m "
+
+            # Add row
+            hspace = 40 - 3  # note space for scroll bar and left margin
+            entry = self._list[index]
+            if len(entry) > hspace:
+                entry = entry[: hspace - 1] + "…"
+            line += entry.ljust(hspace)
+
+            # Add scroll char
+            if i >= scroll_first and i < scroll_first + scroll_n:
+                line += " \x1b[48;5;231m "
+            else:
+                line += " \x1b[48;5;238m "
+
             line += "\x1b[0m"
+            # line += f"  {scroll_first} {len(self._list)} {vspace} {scroll_n}"
             lines.append(line)
 
         while len(lines) < self._vspace:
-            lines.append("")
+            lines.append("\x1b[0m")
 
         return lines
 
@@ -344,7 +357,7 @@ class StatusHelper:
     def get_lines(self):
         loop_info = "some-loop"
         runner = "o"
-        line = ""
+        line = "\x1b[0m"
         line += "\x1b[0;37;44m"
         line += f" {runner} PyTerm with {self._pyversion} on {loop_info:<10}".ljust(80)
         line += "\x1b[0m"
