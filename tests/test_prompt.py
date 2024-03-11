@@ -17,7 +17,6 @@ def test_autocomp_helper():
     for i in range(3, 7):
         assert lines[i] == ""
 
-
     # --- A list that fits exactly
 
     ah = AutocompHelper()
@@ -36,7 +35,6 @@ def test_autocomp_helper():
     for i in range(7):
         assert "\x1b[0m█" in lines[i]
         assert f"line{i}" in lines[i]
-
 
     # --- A list that is one item too long to fit
 
@@ -60,7 +58,6 @@ def test_autocomp_helper():
     assert "\x1b[2m█" in lines[0]  # dimmed
     for i in range(1, 7):
         assert "\x1b[0m█" in lines[i]
-
 
     # --- A list that is way too long to fit
 
