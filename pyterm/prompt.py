@@ -115,9 +115,6 @@ class Prompt:
         # Restore state. This includes position, but also color and more.
         write("\x1b8")
 
-        # Reset color and style.
-        write("\x1b[0m")
-
         # Unfortunately, the row-number is easily offset for reasons I don't
         # fully understand. The column is correct though, and important to
         # maintain to support printing multiple pieces on the same line (e.g. a
@@ -140,6 +137,10 @@ class Prompt:
             # This seems the better solution for now though.
             write(f"\x1b[1B\x1b[2K" * n)
             write(f"\x1b[{n}A")
+            write("\x1b[0K")  # also remove any remains on the current line
+
+        # Reset color and style.
+        write("\x1b[0m")
 
         self._prompt_is_shown = False
         self._file_out.buffer.flush()
