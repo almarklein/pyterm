@@ -52,10 +52,10 @@ class Prompt:
             import sys
 
             # print("Tab was hit!")
-            sys.stdout.write("Tab was hit!|")
+            # sys.stdout.write("Tab was hit!|")
+            # sys.stdout.flush()
+            sys.stdout.write("Tab was hit!\n")
             sys.stdout.flush()
-            # sys.stderr.write("Tab was hit!|")
-            # sys.stderr.flush()
             return
         elif key == "left":
             if self._in1:
@@ -125,18 +125,21 @@ class Prompt:
         # way down, clipping to the bottom, and then back up, using the number
         # of lines that we know.
         n = self._lines_below_input + 1
-
-        # As we move down, we clear the lines.
-        write(f"\x1b[1B\x1b[2K" * n)
-
-        # Go back up. We're still in the correct column. After this,
-        # we're right after the last written char.
+        write(f"\x1b[{n}B")
         write(f"\x1b[{n}A")
 
-        # We could clear from here. But we do not have to. I expect there's less
-        # chance on flicker if we don't change the number of lines too much.
-        # That's why we clear all lines instead.
-        # write("\x1b[0J")  - commented to avoid flicker
+        # Now clear the lines below.
+        if False:
+            # This clears everything after the cursor. This can cause flicker
+            # when there is a flush before the prompt is drawn again.
+            write("\x1b[0J")
+        else:
+            # Clear lines below and go back up. This avoids flicker, but it
+            # keeps the empty lines at the bottom. In theory that can cause
+            # side-effects when code uses escape chars to go all the way down.
+            # This seems the better solution for now though.
+            write(f"\x1b[1B\x1b[2K" * n)
+            write(f"\x1b[{n}A")
 
         self._prompt_is_shown = False
         self._file_out.buffer.flush()

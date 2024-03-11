@@ -168,7 +168,7 @@ class PytermOutBuffer:
         logger.info(f"stdout buffer write {id(self._proxy_file)}: {bb}")
         self._prompt.clear()
         self._proxy_file.write(bb)
-        self._proxy_file.flush()
+        self._proxy_file.flush()  # because this *can* be stderr
         self._prompt.write_prompt()
         return len(bb)
 
