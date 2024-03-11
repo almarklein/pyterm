@@ -3,8 +3,8 @@ import time
 import queue
 import logging
 
-from .loop import loop_manager, RawLoop
-from .loop_asyncio import patch_asyncio_on_import
+from .loops._base import loop_manager, RawLoop
+from .loops import enable_all_loop_support
 from .term.io import (
     Stdin,
     StdinBuffer,
@@ -56,7 +56,7 @@ def main():
     # repl = Repl(namespace, lines_queue)
 
     # Patching loops
-    patch_asyncio_on_import()
+    enable_all_loop_support()
 
     # Create outer loop
     loop = RawLoop()

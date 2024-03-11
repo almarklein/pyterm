@@ -4,13 +4,13 @@ import logging
 import threading
 
 from .importhook import on_import
-from .loop import BaseLoop, loop_manager
+from ._base import BaseLoop, loop_manager
 
 
 logger = logging.getLogger("pyterm")
 
 
-def patch_asyncio_on_import():
+def enable_asyncio_loop_support():
     if "asyncio" in sys.modules:
         logger.warning("Patching asyncio, but it was already imported!")
         patch_asyncio(sys.modules["asyncio"])
