@@ -12,8 +12,7 @@ ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200
 
 
 def get_console_mode(fd) -> int:
-    """Get the console mode for a given file descriptor (for stdout or stdin)
-    """
+    """Get the console mode for a given file descriptor (for stdout or stdin)"""
     windows_filehandle = msvcrt.get_osfhandle(file.fileno())  # type: ignore
     mode = wintypes.DWORD()
     KERNEL32.GetConsoleMode(windows_filehandle, ctypes.byref(mode))
@@ -21,8 +20,7 @@ def get_console_mode(fd) -> int:
 
 
 def set_console_mode(fd, mode: int) -> bool:
-    """Set the console mode for a given file descriptor (for stdout or stdin).
-    """
+    """Set the console mode for a given file descriptor (for stdout or stdin)."""
     windows_filehandle = msvcrt.get_osfhandle(fd)  # type: ignore
     success = KERNEL32.SetConsoleMode(windows_filehandle, mode)
     return success
@@ -46,13 +44,10 @@ class WindowsTerminal(Terminal):
         self._ori_mode_out = mode_out
         # Update
         set_console_mode(self.fd_in, ENABLE_VIRTUAL_TERMINAL_INPUT)
-        set_console_mode(
-            self.fd_out, mode_out | ENABLE_VIRTUAL_TERMINAL_PROCESSING
-        )
-
+        set_console_mode(self.fd_out, mode_out | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 
     def _reset(self):
-        if  self._ori_mode_in is not None:
-            set_console_mode(self.fd_in,  self._ori_mode_in)
+        if self._ori_mode_in is not None:
+            set_console_mode(self.fd_in, self._ori_mode_in)
             set_console_mode(self.fd_out, self._ori_mode_out)
-             self._ori_mode_in =  self._ori_mode_out = None
+            self._ori_mode_in = self._ori_mode_out = None

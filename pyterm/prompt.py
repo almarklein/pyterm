@@ -1,24 +1,21 @@
-import sys
 import math
 import platform
 
 
 class Prompt:
-    """A terminal prompt."""
+    """A terminal prompt, with history, status and autocomp."""
 
-    def __init__(self):
+    def __init__(self, file_out):
+        self._file_out = file_out
+
         self._pre = "pyterm> "
         self._in1 = ""
         self._in2 = ""
 
         self._history = HistoryHelper()
         self._status = StatusHelper()
-
-        import builtins
-
         self._autocomp = AutocompHelper()
-        self._autocomp.show(dir(builtins))
-        # self._autocomp.show([str(i) for i in range(100)])
+        self._autocomp.show([str(i) for i in range(100)])
         # self._autocomp.show(["aap", "noot", "mies", "spam", "eggs"])
 
         self._write_prompt()
@@ -42,7 +39,7 @@ class Prompt:
             self._in1 = command
             self._in2 = ""
             self._write_prompt()
-            sys.stdout.write("\n")
+            self._file_out.write("\n")
             self._in1 = ""
         elif key == "escape":
             pass
@@ -70,10 +67,11 @@ class Prompt:
                 self._in1 = self._history.down()
         else:
             pass  # ignore
+
         self._write_prompt()
 
     def _write_prompt(self):
-        write = sys.stdout.write
+        write = self._file_out.write
 
         # Move to beginning, and clear rest of screen
         write("\r")
@@ -104,19 +102,16 @@ class Prompt:
         write("\x1b7")
 
         # Autocomp
-        self._autocomp.write(sys.stdout)
+        for line in self._autocomp.get_lines():
+            write("\x1b[1E")  # move to beginning of next line
+            write(line)
+
+        write("\x1b[1E")
+        write(self._status.get_line())
 
         # Restore cursor to saved state
         write("\x1b8")
-
-        self._status.write(sys.stdout)
-
-        # Restore cursor to saved state
-        write("\x1b8")
-        sys.stdout.flush()
-
-    def _write(self, s):
-        sys.std.flush()
+        self._file_out.flush()
 
 
 class HistoryHelper:
@@ -210,8 +205,7 @@ class AutocompHelper:
     def show(self, names):
         self._list = [str(x) for x in names]
 
-    def write(self, file):
-        write = file.write
+    def get_lines(self):
         ref_index = self._index or 0
 
         # How much space do we have / need
@@ -242,19 +236,25 @@ class AutocompHelper:
                 (vspace - scroll_n - 1) * (index_first) / (highest_index_first)
             )
 
+        lines = []
         for i, index in enumerate(range(index_first, index_last + 1)):
-
-            write("\x1b[1E")  # move to beginning of next line
+            line = ""
             if i >= scroll_first and i < scroll_first + scroll_n:
-                write("\x1b[0m█ \x1b[0m")
+                line += "\x1b[0m█ \x1b[0m"
             else:
-                write("\x1b[2m█ \x1b[0m")
-            write("\x1b[2m")
+                line += "\x1b[2m█ \x1b[0m"
+            line += "\x1b[2m"
             if index == self._index:
-                write("\x1b[4m")
-            write(self._list[index])
-            # write(f"  {scroll_first} {len(self._list)} {vspace} {scroll_n}")
-            write("\x1b[0m")
+                line += "\x1b[4m"
+            line += self._list[index]
+            # line += f"  {scroll_first} {len(self._list)} {vspace} {scroll_n}"
+            line += "\x1b[0m"
+            lines.append(line)
+
+        while len(lines) < self._vspace:
+            lines.append("")
+
+        return lines
 
 
 class StatusHelper:
@@ -268,13 +268,11 @@ class StatusHelper:
     def active(self):
         return True
 
-    def write(self, file):
-        write = file.write
+    def get_line(self):
         loop_info = "some-loop"
         runner = "o"
-        line_down = 8
-
-        write(f"\x1b[{line_down}E")  # move to line
-        write("\x1b[0;37;44m")
-        write(f" {runner} PyTerm with {self._pyversion} on {loop_info:<10}  ".ljust(80))
-        write("\x1b[0m")
+        line = ""
+        line += "\x1b[0;37;44m"
+        line += f" {runner} PyTerm with {self._pyversion} on {loop_info:<10}".ljust(80)
+        line += "\x1b[0m"
+        return line
