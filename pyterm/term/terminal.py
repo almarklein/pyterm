@@ -15,7 +15,7 @@ and Windows.
 """
 
 import sys
-import signal
+import shutil
 
 
 class Terminal:
@@ -55,6 +55,10 @@ class Terminal:
         # not translate to sigint anymore, but via e.g. os.kill() a signal can still be send!
         # signal.signal(signal.SIGINT, self._exit)
         # signal.signal(signal.SIGTERM, self._exit)
+
+    def reset(self):
+        # todo: replace this with a context manager?
+        self._reset()
 
     def _set_terminal_mode(self):
         raise NotImplementedError()

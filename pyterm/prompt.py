@@ -103,7 +103,7 @@ class Prompt:
         self._history.add(command)
         self._history.reset()
 
-    def clear(self):
+    def clear(self, hard=False):
 
         # TODO: need a lock to make writes atomic in multi-threading situations!
 
@@ -126,7 +126,7 @@ class Prompt:
         write(f"\x1b[{n}A")
 
         # Now clear the lines below.
-        if False:
+        if hard:
             # This clears everything after the cursor. This can cause flicker
             # when there is a flush before the prompt is drawn again.
             write("\x1b[0J")

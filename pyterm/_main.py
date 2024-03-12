@@ -68,6 +68,8 @@ def main():
         pass  # print("except from loop", err)
     finally:
         # Restore original streams, so that SystemExit behaves as intended
+        prompt.clear(True)
+        terminal.reset()
         try:
             sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
         except Exception:
