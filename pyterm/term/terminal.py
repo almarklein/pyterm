@@ -29,8 +29,6 @@ class Terminal:
         # Select terminal class
         if sys.platform.startswith("win"):
             from .terminal_windows import WindowsTerminal as Terminal
-
-            return windows.WindowsTerminal()
         else:
             from .terminal_unix import UnixTerminal as Terminal
         return super().__new__(Terminal, **kwargs)

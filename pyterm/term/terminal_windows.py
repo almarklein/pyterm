@@ -13,7 +13,7 @@ ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200
 
 def get_console_mode(fd) -> int:
     """Get the console mode for a given file descriptor (for stdout or stdin)"""
-    windows_filehandle = msvcrt.get_osfhandle(file.fileno())  # type: ignore
+    windows_filehandle = msvcrt.get_osfhandle(fd)  # type: ignore
     mode = wintypes.DWORD()
     KERNEL32.GetConsoleMode(windows_filehandle, ctypes.byref(mode))
     return mode.value
@@ -28,14 +28,12 @@ def set_console_mode(fd, mode: int) -> bool:
 
 class WindowsTerminal(Terminal):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self._ori_mode_in = None
         self._ori_mode_out = None
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def _set_terminal_mode(self):
-        # Get files to set mode for
-        file_out = sys.__stdout__
         # Get current mode
         mode_in = get_console_mode(self.fd_in)
         mode_out = get_console_mode(self.fd_out)
