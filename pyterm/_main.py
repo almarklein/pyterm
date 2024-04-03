@@ -3,7 +3,7 @@ import time
 import queue
 
 from .loops import loop_manager, RawLoop, enable_all_loop_support
-from .term import Terminal, ProxyStdin, ProxyStdout, InputReader
+from .term import TerminalContext, ProxyStdin, ProxyStdout, InputReader
 from .repl import Repl
 from .prompt import Prompt
 
@@ -14,64 +14,63 @@ def main():
     # Only when this function is called, is everything put in place.
 
     # Uncomment to detect error in the interpreter itself.
-    # But better not use it by default. For instance errors in qt eventsonss
+    # But better not use it by default. For instance errors in qt events
     # are also catched by this function. I think that is because it would
     # allow you to show such exceptions in an error dialog.
     # sys.excepthook = pyterm_excepthook
 
-    terminal = Terminal()
+    with TerminalContext() as terminal_context:
 
-    # Create queue to store lines from stdin, but thread-safe, and being
-    # able to tell whether there are lines pending.
-    lines_queue = queue.Queue()
+        # Create queue to store lines from stdin, but thread-safe, and being
+        # able to tell whether there are lines pending.
+        lines_queue = queue.Queue()
 
-    prompt = Prompt(sys.stdout)
+        prompt = Prompt(sys.stdout)
 
-    # Replace stdin with a variant that uses the queue.
-    sys.stdin = ProxyStdin(lines_queue, "<stdin>")
-    sys.stdout = ProxyStdout(prompt, sys.stdout, "<stdout>")
-    sys.stderr = ProxyStdout(prompt, sys.stderr, "<stderr>")
+        # Replace stdin with a variant that uses the queue.
+        sys.stdin = ProxyStdin(lines_queue, "<stdin>")
+        sys.stdout = ProxyStdout(prompt, sys.stdout, "<stdout>")
+        sys.stderr = ProxyStdout(prompt, sys.stderr, "<stderr>")
 
-    def callback(key):
-        if "x" == key:
-            print("Quitting!")
-            loop.call_soon(sys.exit)
-        # print("echo", repr(key))
-        prompt.on_key(key)
+        def callback(key):
+            if "x" == key:
+                print("Quitting!")
+                loop.call_soon(sys.exit)
+            # print("echo", repr(key))
+            prompt.on_key(key)
 
-    # Read from real stdin, into the queue.
-    input_thread = InputReader(sys.__stdin__.fileno(), callback)
-    input_thread.start()
+        # Read from real stdin, into the queue.
+        input_thread = InputReader(sys.__stdin__.fileno(), callback)
+        input_thread.start()
 
-    # Create a repl, also reads from the queue.
-    namespace = {}
-    # repl = Repl(namespace, lines_queue)
+        # Create a repl, also reads from the queue.
+        namespace = {}
+        # repl = Repl(namespace, lines_queue)
 
-    # Patching loops
-    enable_all_loop_support()
+        # Patching loops
+        enable_all_loop_support()
 
-    # Create outer loop
-    loop = RawLoop()
-    loop_manager.add_loop(loop)
+        # Create outer loop
+        loop = RawLoop()
+        loop_manager.add_loop(loop)
 
-    try:
-        loop.run()
-    except BaseException as err:
-        pass  # print("except from loop", err)
-    finally:
-        # Restore original streams, so that SystemExit behaves as intended
-        prompt.clear(True)
-        terminal.reset()
         try:
-            sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
-        except Exception:
-            pass
-        try:
-            # Help InputReader close down
-            sys.stdin.close()
-        except (Exception, KeyboardInterrupt):
-            pass
-        # Could do more cleanup here
+            loop.run()
+        except BaseException as err:
+            pass  # print("except from loop", err)
+        finally:
+            # Restore original streams, so that SystemExit behaves as intended
+            prompt.clear(True)
+            try:
+                sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+            except Exception:
+                pass
+            try:
+                # Help InputReader close down
+                sys.stdin.close()
+            except (Exception, KeyboardInterrupt):
+                pass
+            # Could do more cleanup here
 
 
 def pyterm_excepthook(type, value, tb):

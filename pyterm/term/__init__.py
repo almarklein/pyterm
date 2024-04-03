@@ -14,6 +14,6 @@ There are a few parts where the code for Unix and Windows needs to differ. This
 is why we have a base Terminal class, with implementations for Unix and Windows.
 """
 
-from ._terminal import Terminal  # noqa
+from ._context import TerminalContext  # noqa
 from ._input_reader import InputReader  # noqa
 from ._io_proxies import ProxyStdin, ProxyStdout  # noqa

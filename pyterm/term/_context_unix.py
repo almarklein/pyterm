@@ -3,7 +3,7 @@ import tty  # Unix
 import signal
 import termios  # Unix
 
-from ._terminal import Terminal
+from ._context import TerminalContext
 
 
 def patch_lflag(attrs: int) -> int:
@@ -25,7 +25,7 @@ def patch_iflag(attrs: int) -> int:
     )
 
 
-class UnixTerminal(Terminal):
+class UnixTerminalContext(TerminalContext):
 
     def __init__(self, **kwargs):
         self._ori_term_attr = None
@@ -68,39 +68,37 @@ class UnixTerminal(Terminal):
 
         return True
 
-        # todo: start writer thread
-
         # We can use a signal handler to keep notified of size changes.
         # But for now we don't care about size, so we don't.
         # signal.signal(signal.SIGWINCH, on_terminal_resize)
-        # We can also use
 
-    def _set_terminal_mode(self):
+    def _store_terminal_mode(self):
         try:
             self._ori_term_attr = termios.tcgetattr(self.fd_in)
         except termios.error:
             # Ignore attribute errors.
             self._ori_term_attr = None
 
+    def _set_terminal_mode(self):
+
         try:
             newattr = termios.tcgetattr(self.fd_in)
         except termios.error:
-            pass
-        else:
-            newattr[tty.LFLAG] = patch_lflag(newattr[tty.LFLAG])
-            newattr[tty.IFLAG] = patch_iflag(newattr[tty.IFLAG])
+            return
 
-            # VMIN defines the number of characters read at a time in
-            # non-canonical mode. It seems to default to 1 on Linux, but on
-            # Solaris and derived operating systems it defaults to 4. (This is
-            # because the VMIN slot is the same as the VEOF slot, which
-            # defaults to ASCII EOT = Ctrl-D = 4.)
-            newattr[tty.CC][termios.VMIN] = 1
+        newattr[tty.LFLAG] = patch_lflag(newattr[tty.LFLAG])
+        newattr[tty.IFLAG] = patch_iflag(newattr[tty.IFLAG])
 
-            termios.tcsetattr(self.fd_in, termios.TCSANOW, newattr)
+        # VMIN defines the number of characters read at a time in
+        # non-canonical mode. It seems to default to 1 on Linux, but on
+        # Solaris and derived operating systems it defaults to 4. (This is
+        # because the VMIN slot is the same as the VEOF slot, which
+        # defaults to ASCII EOT = Ctrl-D = 4.)
+        newattr[tty.CC][termios.VMIN] = 1
 
-    def _reset(self):
-        # Reset terminal
+        termios.tcsetattr(self.fd_in, termios.TCSANOW, newattr)
+
+    def _reset_terminal_mode(self):
         if self._ori_term_attr is not None:
             try:
                 termios.tcsetattr(self.fd_in, termios.TCSANOW, self._ori_term_attr)
