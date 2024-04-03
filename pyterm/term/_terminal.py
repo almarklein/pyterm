@@ -1,19 +1,3 @@
-"""
-This subpackage implements a simple terminal. This is similar to the
-code at the heart of e.g. prompt_toolkit and Textual. Since it's 2024
-I'm ok with supporting only win10 and up. This means we can use a
-sensible subset of vt100. I also want this to work on VSCode, so we
-also limit to what xterm.js supports.
-
-We don't use curses, because that's Unix only, and would require a whole
-separate implementation for Windows. Using vt100-ish escape sequences
-allows us to target a broad audience, with nearly the same code.
-
-There are a few parts where the code for Unix and Windows needs to
-differ. This is why we have a base class, with implementations for Unix
-and Windows.
-"""
-
 import sys
 import shutil
 
@@ -28,9 +12,9 @@ class Terminal:
     def __new__(cls, **kwargs):
         # Select terminal class
         if sys.platform.startswith("win"):
-            from .terminal_windows import WindowsTerminal as Terminal
+            from ._terminal_windows import WindowsTerminal as Terminal
         else:
-            from .terminal_unix import UnixTerminal as Terminal
+            from ._terminal_unix import UnixTerminal as Terminal
         return super().__new__(Terminal, **kwargs)
 
     def __init__(self, stdin=None, stdout=None):

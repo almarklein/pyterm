@@ -1,7 +1,3 @@
-"""
-Register a function to be called when a certain module gets imported.
-"""
-
 import sys
 import logging
 from importlib.abc import MetaPathFinder, Loader

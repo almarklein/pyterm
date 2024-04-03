@@ -1,21 +1,36 @@
-"""
-Handling reading from stdin.
-"""
-
-import os
 import io
 import sys
 import logging
-import threading
-from codecs import getincrementaldecoder
-
-from .escape_code_decoder import EscapeCodeDecoder
 
 
 logger = logging.getLogger("pyterm")
 
 
-class StdinBuffer:
+class ProxyStdin(io.TextIOWrapper):
+    """Object representing a proxy/fake text stdin stream."""
+
+    def __init__(self, lines_queue, name):
+        super().__init__(ProxyStdinBuffer(lines_queue, name))
+
+    def readline(self, size=-1):
+        return self.buffer.readline(size).decode()
+
+
+class ProxyStdout(io.TextIOWrapper):
+    """Object representing a proxy/fake text stdout stream."""
+
+    def __init__(self, prompt, original, name):
+        super().__init__(
+            ProxyStdoutBuffer(prompt, original.buffer, name), encoding=original.encoding
+        )
+
+    def write(self, text):
+        self.buffer.write(text.encode(self.encoding))
+
+
+class ProxyStdinBuffer:
+    """Object representing a proxy/fake binary stdin stream."""
+
     def __init__(self, lines_queue, name="<stdin>", isatty=True):
         self._name = name
         self._closed = False
@@ -72,55 +87,15 @@ class StdinBuffer:
         return self.lines_queue.get()
 
 
-class Stdin(io.TextIOWrapper):
+class ProxyStdoutBuffer:
+    """Object representing a proxy/fake binary stdout stream."""
 
-    def readline(self, size=-1):
-        return self.buffer.readline(size).decode()
-
-
-class InputThread(threading.Thread):
-    """To read from stdin and feed the result into the main thread's event loop."""
-
-    def __init__(self, fd, callback):
-        super().__init__()
-        self._fd = fd
-        self._callback = callback
-        self.daemon = True
-
-    def run(self):
-        logger.info("input thread started")
-        fd = self._fd
-        callback = self._callback
-        read = os.read
-        decode_utf8 = getincrementaldecoder("utf-8")().decode
-        decode_escapes = EscapeCodeDecoder().decode
-
-        try:
-            while True:
-                bb = read(fd, 1024)
-                raw_text = decode_utf8(bb)
-                texts = decode_escapes(raw_text)
-
-                if not bb:  # stdin is closed
-                    break  # todo: signal main thread to close
-                for text in texts:
-                    try:
-                        callback(text)
-                    except Exception as err:
-                        logger.error(f"Error in handling input: {err}")
-        except Exception as err:
-            logger.error(f"io thread errored: {str(err)}")
-        else:
-            logger.info("io thread stopped")
-
-
-class PytermOutBuffer:
-    def __init__(self, prompt, proxy, name, isatty=True):
+    def __init__(self, prompt, original, name, isatty=True):
         self._name = name
         self._closed = False
         self._isatty = isatty
         self._prompt = prompt
-        self._proxy_file = proxy
+        self._original_file = original
 
     def __del__(self):
         self.close()
@@ -139,7 +114,7 @@ class PytermOutBuffer:
 
     def close(self):
         """Close the file object."""
-        self._proxy_file.close()
+        self._original_file.close()
         self._closed = True
         return
 
@@ -156,7 +131,7 @@ class PytermOutBuffer:
         return False
 
     def flush(self):
-        self._proxy_file.flush()
+        self._original_file.flush()
 
     def isatty(self):
         return self._isatty
@@ -164,10 +139,10 @@ class PytermOutBuffer:
     # def fileno(self) -> if we implement it to raise an error, TextIOWrapper(..) fails
 
     def write(self, bb):
-        logger.info(f"stdout buffer write {id(self._proxy_file)}: {bb}")
+        logger.info(f"stdout buffer write {id(self._original_file)}: {bb}")
         self._prompt.clear()
-        self._proxy_file.write(bb)
-        self._proxy_file.flush()  # because this *can* be stderr
+        self._original_file.write(bb)
+        self._original_file.flush()  # because this *can* be stderr
         self._prompt.write_prompt()
         return len(bb)
 
@@ -175,17 +150,6 @@ class PytermOutBuffer:
         logger.info("stdout buffer write lines")
         self._prompt.clear()
         for line in lines:
-            self._proxy_file.write(line)
-        self._proxy_file.flush()
+            self._original_file.write(line)
+        self._original_file.flush()
         self._prompt.write_prompt()
-
-
-class PytermOutFile(io.TextIOWrapper):
-
-    def __init__(self, prompt, proxy, name):
-        super().__init__(
-            PytermOutBuffer(prompt, proxy.buffer, name), encoding=proxy.encoding
-        )
-
-    def write(self, text):
-        self.buffer.write(text.encode(self.encoding))

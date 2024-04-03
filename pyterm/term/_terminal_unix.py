@@ -3,7 +3,7 @@ import tty  # Unix
 import signal
 import termios  # Unix
 
-from .terminal import Terminal
+from ._terminal import Terminal
 
 
 def patch_lflag(attrs: int) -> int:

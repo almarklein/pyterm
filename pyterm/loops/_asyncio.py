@@ -3,8 +3,8 @@ import weakref
 import logging
 import threading
 
-from .importhook import on_import
 from ._base import BaseLoop, loop_manager
+from ._importhook import on_import
 
 
 logger = logging.getLogger("pyterm")

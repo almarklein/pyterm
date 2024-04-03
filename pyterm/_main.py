@@ -3,13 +3,7 @@ import time
 import queue
 
 from .loops import loop_manager, RawLoop, enable_all_loop_support
-from .term.io import (
-    Stdin,
-    StdinBuffer,
-    InputThread,
-    PytermOutFile,
-)  # todo: hide StdinBuffer?
-from .term import Terminal
+from .term import Terminal, ProxyStdin, ProxyStdout, InputReader
 from .repl import Repl
 from .prompt import Prompt
 
@@ -34,11 +28,9 @@ def main():
     prompt = Prompt(sys.stdout)
 
     # Replace stdin with a variant that uses the queue.
-    sys.stdin = Stdin(StdinBuffer(lines_queue))
-    sys.stdout = PytermOutFile(prompt, sys.stdout, "<stdout>")
-    sys.stderr = PytermOutFile(prompt, sys.stderr, "<stderr>")
-
-    Repl  # -> todo: use again
+    sys.stdin = ProxyStdin(lines_queue, "<stdin>")
+    sys.stdout = ProxyStdout(prompt, sys.stdout, "<stdout>")
+    sys.stderr = ProxyStdout(prompt, sys.stderr, "<stderr>")
 
     def callback(key):
         if "x" == key:
@@ -48,7 +40,7 @@ def main():
         prompt.on_key(key)
 
     # Read from real stdin, into the queue.
-    input_thread = InputThread(sys.__stdin__.fileno(), callback)
+    input_thread = InputReader(sys.__stdin__.fileno(), callback)
     input_thread.start()
 
     # Create a repl, also reads from the queue.
@@ -75,7 +67,7 @@ def main():
         except Exception:
             pass
         try:
-            # Help InputThread close down
+            # Help InputReader close down
             sys.stdin.close()
         except (Exception, KeyboardInterrupt):
             pass

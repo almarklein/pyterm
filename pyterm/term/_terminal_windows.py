@@ -2,7 +2,7 @@ import msvcrt
 import ctypes
 from ctypes import wintypes
 
-from .terminal import Terminal
+from ._terminal import Terminal
 
 
 KERNEL32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore
