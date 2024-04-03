@@ -1,4 +1,11 @@
+import time
+import logging
+import threading
+
 from ._base import BaseLoop
+
+
+logger = logging.getLogger("pyterm")
 
 
 class RawLoop(BaseLoop):

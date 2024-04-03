@@ -7,6 +7,7 @@ with open("pyterm/__init__.py", "rb") as fh:
     init_text = fh.read().decode()
     VERSION = re.search(r"__version__ = \"(.*?)\"", init_text).group(1)
 
+
 setup(
     name="pyterm",
     version=VERSION,
@@ -14,7 +15,7 @@ setup(
     python_requires=">=3.6.0",
     install_requires=[],
     license="MIT",
-    description="A Python repl that stays responsive in GUI loops, and has superb debugging support.",
+    description="A Python repl that stays with you all the way",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="Almar Klein",

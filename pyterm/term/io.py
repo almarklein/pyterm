@@ -5,7 +5,6 @@ Handling reading from stdin.
 import os
 import io
 import sys
-import queue
 import logging
 import threading
 from codecs import getincrementaldecoder
@@ -173,7 +172,7 @@ class PytermOutBuffer:
         return len(bb)
 
     def writelines(self, lines):
-        logger.info(f"stdout buffer write lines")
+        logger.info("stdout buffer write lines")
         self._prompt.clear()
         for line in lines:
             self._proxy_file.write(line)

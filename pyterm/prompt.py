@@ -135,7 +135,7 @@ class Prompt:
             # keeps the empty lines at the bottom. In theory that can cause
             # side-effects when code uses escape chars to go all the way down.
             # This seems the better solution for now though.
-            write(f"\x1b[1B\x1b[2K" * n)
+            write("\x1b[1B\x1b[2K" * n)
             write(f"\x1b[{n}A")
             write("\x1b[0K")  # also remove any remains on the current line
 

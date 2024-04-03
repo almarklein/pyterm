@@ -1,6 +1,6 @@
-from ._base import BaseLoop, LoopManager, loop_manager
-from ._raw import RawLoop
-from ._asyncio import enable_asyncio_loop_support
+from ._base import BaseLoop, LoopManager, loop_manager  # noqa
+from ._raw import RawLoop  # noqa
+from ._asyncio import enable_asyncio_loop_support  # noqa
 
 
 def enable_all_loop_support():

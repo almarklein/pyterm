@@ -14,7 +14,7 @@ import bdb
 import linecache
 
 
-printDirect = print
+print_direct = print
 
 # todo: clean this up ...
 # todo: prompts and inputs and such.
@@ -155,12 +155,12 @@ class Repl:
         else:
             NBITS = 8 * struct.calcsize("P")
             plat = "%s (%i bits)" % (sys.platform, NBITS)
-        printDirect(
+        print_direct(
             "%s %s on %s.\n" % (thename, sys.version.split("[")[0].rstrip(), plat)
         )
 
         # Write pyterm part of banner (including what GUI loop is integrated)
-        printDirect("This is the pyterm.")
+        print_direct("This is the pyterm.")
 
         # Set prompts
         sys.ps1 = PS1(self)
@@ -169,15 +169,15 @@ class Repl:
         # # Notify about project path
         # projectPath = startup_info["projectPath"]
         # if projectPath:
-        #     printDirect("Prepending the project path %r to sys.path\n" % projectPath)
+        #     print_direct("Prepending the project path %r to sys.path\n" % projectPath)
 
-        printDirect(
+        print_direct(
             "Type 'help' for help, " + "type '?' for a list of *magic* commands.\n"
         )
 
         # Notify the running of the script
         if self._scriptToRunOnStartup:
-            printDirect(
+            print_direct(
                 '\x1b[0;33mRunning script: "'
                 + self._scriptToRunOnStartup
                 + '"\x1b[0m\n'
@@ -217,14 +217,14 @@ class Repl:
         root_logger.addHandler(PMHandler())
 
         # Warn when logging.basicConfig is used (see issue #645)
-        def basicConfigDoesNothing(*args, **kwargs):
+        def basic_config_does_nothing(*args, **kwargs):
             logging.warn(
                 "Pyterm already added handlers to the root handler, "
                 + "so logging.basicConfig() does nothing."
             )
 
         try:
-            logging.basicConfig = basicConfigDoesNothing
+            logging.basicConfig = basic_config_does_nothing
         except Exception:
             pass
 
@@ -237,7 +237,7 @@ class Repl:
         scriptFilename = startup_info["scriptFile"]
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
-                printDirect('Invalid script file: "' + scriptFilename + '"\n')
+                print_direct('Invalid script file: "' + scriptFilename + '"\n')
                 scriptFilename = None
 
         # Get project path
@@ -422,7 +422,8 @@ class Repl:
                 self._resetbuffer()
                 self.more = False
 
-    ## Running code in various ways
+    # --- Running code in various ways
+
     # In all cases there is a call for compilecode and a call to execcode
 
     def _resetbuffer(self):
@@ -608,7 +609,7 @@ class Repl:
                 encoding = firstline.split("coding", 1)[-1].strip(" \t\r\n:=-*")
             source = bb.decode(encoding)
         except Exception:
-            printDirect(
+            print_direct(
                 "Could not read script (decoding using %s): %r\n" % (encoding, fname)
             )
             return
@@ -617,7 +618,7 @@ class Repl:
             if source[-1] != "\n":
                 source += "\n"
         except Exception:
-            printDirect('Could not execute script: "' + fname + '"\n')
+            print_direct('Could not execute script: "' + fname + '"\n')
             return
 
         # Try compiling the source
@@ -719,12 +720,12 @@ class Repl:
             del tb
             print("Error while setting breakpoints: %s" % str(value))
 
-    ## Handlers and hooks
+    # --- Handlers and hooks
 
     def dbstop_handler(self, *args, **kwargs):
         print("Program execution stopped from debugger.")
 
-    ## Writing and error handling
+    # --- Writing and error handling
 
     def write(self, text):
         """Write errors."""
@@ -765,7 +766,7 @@ class Repl:
         for s in strList:
             self.write(s)
 
-    def showtraceback(self, useLastTraceback=False):
+    def showtraceback(self, use_last_traceback=False):
         """Display the exception that just occurred.
         We remove the first stack item because it is our own code.
         The output is written by self.write(), below.
@@ -799,7 +800,7 @@ class Repl:
         # traceback.
 
         try:
-            if useLastTraceback:
+            if use_last_traceback:
                 # Get traceback info from buffered
                 type = sys.last_type
                 value = sys.last_value
@@ -887,8 +888,8 @@ class ExecutedSourceCollection:
         self._cache = {}
         self._patch()
 
-    def store_source(self, codeObject, source):
-        self._cache[codeObject.co_filename] = source
+    def store_source(self, code_object, source):
+        self._cache[code_object.co_filename] = source
 
     def _patch(self):
         def getlines(filename, module_globals=None):

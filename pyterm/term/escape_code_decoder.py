@@ -542,7 +542,7 @@ def compare_with_textual():
     from textual._ansi_sequences import (
         ANSI_SEQUENCES_KEYS as textual_map,
         IGNORE_SEQUENCE as textual_ignore,
-    )
+    )  # noqa
 
     pyterm_map = KEY_MAP
     pyterm_keys = set(pyterm_map)
@@ -567,7 +567,9 @@ def compare_with_textual():
 
 
 def compare_with_prompt_toolkit():
-    from prompt_toolkit.input.ansi_escape_sequences import ANSI_SEQUENCES as pt_map
+    from prompt_toolkit.input.ansi_escape_sequences import (
+        ANSI_SEQUENCES as pt_map,
+    )  # noqa
 
     pyterm_map = KEY_MAP
     pyterm_keys = set(pyterm_map)

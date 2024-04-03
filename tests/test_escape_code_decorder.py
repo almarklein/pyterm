@@ -1,6 +1,6 @@
 import random
 
-from pyterm.term.input_keys import EscapeCodeDecoder, KEY_MAP
+from pyterm.term.escape_code_decoder import EscapeCodeDecoder, KEY_MAP
 
 
 def test_all_keys_are_tuple():

@@ -31,7 +31,8 @@ logger.addHandler(UDPHandler())
 def listen_to_logs():
     """Called from ``pyterm --listen```
 
-    This way we can see the logs from another process, so it does not get mixed up in the handling of error streams.
+    This way we can see the logs from another process, so it does not get mixed
+    up in the handling of error streams.
     """
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

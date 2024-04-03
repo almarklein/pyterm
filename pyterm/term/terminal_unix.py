@@ -106,4 +106,4 @@ class UnixTerminal(Terminal):
                 termios.tcsetattr(self.fd_in, termios.TCSANOW, self._ori_term_attr)
             except Exception:
                 pass
-            self_ori_term_attr = None
+            self._ori_term_attr = None

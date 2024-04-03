@@ -1,5 +1,6 @@
 import sys
-import argparse
+
+# import argparse
 
 from ._main import main
 from .utils import listen_to_logs

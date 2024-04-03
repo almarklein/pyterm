@@ -1,1 +1,1 @@
-from .terminal import Terminal
+from .terminal import Terminal  # noqa

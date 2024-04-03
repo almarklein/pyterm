@@ -1,10 +1,8 @@
 import sys
 import time
 import queue
-import logging
 
-from .loops._base import loop_manager, RawLoop
-from .loops import enable_all_loop_support
+from .loops import loop_manager, RawLoop, enable_all_loop_support
 from .term.io import (
     Stdin,
     StdinBuffer,
@@ -39,6 +37,8 @@ def main():
     sys.stdin = Stdin(StdinBuffer(lines_queue))
     sys.stdout = PytermOutFile(prompt, sys.stdout, "<stdout>")
     sys.stderr = PytermOutFile(prompt, sys.stderr, "<stderr>")
+
+    Repl  # -> todo: use again
 
     def callback(key):
         if "x" == key:
