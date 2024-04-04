@@ -1,7 +1,7 @@
 import math
 import logging
 import platform
-
+import threading
 
 logger = logging.getLogger("pyterm")
 
@@ -9,8 +9,9 @@ logger = logging.getLogger("pyterm")
 class Prompt:
     """A terminal prompt, with history, status and autocomp."""
 
-    def __init__(self, file_out):
-        self._file_out = file_out
+    def __init__(self, file):
+        self._file = file
+        self._lock = threading.RLock()
 
         self._pre = "pyterm> "
         self._in1 = ""
@@ -26,10 +27,21 @@ class Prompt:
 
         self.write_prompt()
 
+    @property
+    def file(self):
+        """The file that the prompt writes to."""
+        # Note: required to work with ProxyStdout
+        return self._file
+
+    @property
+    def lock(self):
+        """Lock the prompt."""
+        # Note: required to work with ProxyStdout
+        # todo: use internally, or from caller
+        return self._lock
+
     def _write(self, text):
-        self._file_out.buffer.write(
-            text.encode(self._file_out.encoding, errors="ignore")
-        )
+        self._file.buffer.write(text.encode(self._file.encoding, errors="ignore"))
 
     def on_key(self, key):
 
@@ -104,6 +116,7 @@ class Prompt:
         self._history.reset()
 
     def clear(self, hard=False):
+        # Note: required to work with ProxyStdout
 
         # TODO: need a lock to make writes atomic in multi-threading situations!
 
@@ -143,9 +156,10 @@ class Prompt:
         write("\x1b[0m")
 
         self._prompt_is_shown = False
-        self._file_out.buffer.flush()
+        self._file.buffer.flush()
 
     def write_prompt(self):
+        # Note: required to work with ProxyStdout
 
         write = self._write
 
@@ -185,7 +199,7 @@ class Prompt:
             write(f"\x1b[{n}D")
 
         self._prompt_is_shown = True
-        self._file_out.buffer.flush()
+        self._file.buffer.flush()
 
 
 class HistoryHelper:

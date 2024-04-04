@@ -29,8 +29,8 @@ def main():
 
         # Replace stdin with a variant that uses the queue.
         sys.stdin = ProxyStdin(lines_queue, "<stdin>")
-        sys.stdout = ProxyStdout(prompt, sys.stdout, "<stdout>")
-        sys.stderr = ProxyStdout(prompt, sys.stderr, "<stderr>")
+        sys.stdout = ProxyStdout(sys.stdout, "<stdout>", prompt)
+        sys.stderr = ProxyStdout(sys.stderr, "<stderr>", prompt)
 
         def callback(key):
             if "x" == key:
